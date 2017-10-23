@@ -5,7 +5,7 @@
 Using this template to create a new Django app is easy:
 
 ```bash
-django-admin.py startproject --template=https://github.com/Tirzono/django-dokku-template/archive/master.zip -e py,md,example,json,sh -n Procfile {{ project_name }} .
+django-admin.py startproject --template=https://github.com/Tirzono/django-dokku-template/archive/master.zip -e py,md,example,json,sh,js -n Procfile {{ project_name }} .
 ```
 
 ## Configuration
@@ -44,3 +44,43 @@ sudo dokku plugin:install https://github.com/dokku/dokku-rabbitmq.git rabbitmq
 dokku rabbitmq:create {{ project_name }}
 dokku rabbitmq:link {{ project_name }} {{ project_name }}
 ```
+
+## Development
+
+Yarn will be used for frontend packages. To install all packages, run:
+
+```bash
+yarn
+```
+
+To add a frontend package, run:
+
+```bash
+yarn add <package_name>
+```
+
+To generate the Javascript and CSS file, run:
+
+```bash
+gulp
+```
+
+## Deployment
+
+Deployment can be done with Bitbucket Pipelines. Set the following
+parameters:
+
+* DOKKU_USER
+* DOKKU_HOST
+* DOKKU_PRODUCTION_APP
+
+Where `DOKKU_PRODUCTION_APP` is equal to `{{ project_name }}`.
+
+A Vagrant box is present to test the dokku deployment. Run:
+
+```bash
+vagrant up --provider=virtualbox
+```
+
+Next go to `dokku.me` to finish the installation and start using the
+Vagrant box.
