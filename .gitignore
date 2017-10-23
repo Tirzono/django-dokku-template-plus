@@ -6,3 +6,13 @@ staticfiles
 
 settings_module
 secrets.json
+
+nbproject
+npm-debug.log
+node_modules/*
+!node_modules/.gitkeep
+.sass-cache
+
+portal/settings_module
+
+static/*

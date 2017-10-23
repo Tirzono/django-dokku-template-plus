@@ -1,0 +1,8 @@
+image: bravissimolabs/alpine-git
+
+pipelines:
+  branches:
+    production:
+      - step:
+          script:
+            - git push ${DOKKU_USER}@${DOKKU_HOST}:${DOKKU_PRODUCTION_APP} HEAD:master
