@@ -5,7 +5,7 @@
 Using this template to create a new Django app is easy:
 
 ```bash
-django-admin.py startproject --template=https://github.com/Tirzono/django-dokku-template/archive/master.zip -e py,md,example,json,sh,js -n Procfile {{ project_name }} .
+django-admin.py startproject --template=https://github.com/Tirzono/django-dokku-template-plus/archive/master.zip -e py,md,example,json,sh,js -n Procfile {{ project_name }} .
 ```
 
 ## Configuration
