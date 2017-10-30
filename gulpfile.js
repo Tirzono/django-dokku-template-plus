@@ -2,8 +2,10 @@ var gulp = require('gulp'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
     rename = require('gulp-rename'),
-    sass = require('gulp-ruby-sass'),
-    autoprefixer = require('gulp-autoprefixer');
+    sass = require('gulp-sass'),
+    sourcemaps = require('gulp-sourcemaps'),
+    autoprefixer = require('gulp-autoprefixer'),
+    browserSync = require('browser-sync').create();
 
 var DEST = '{{ project_name }}/static/';
 
@@ -20,19 +22,15 @@ gulp.task('scripts', function() {
       .pipe(gulp.dest(DEST+'/js'));
 });
 
-var compileSASS = function (filename, options) {
-  return sass('src/scss/*.scss', options)
-        .pipe(autoprefixer('last 2 versions', '> 5%'))
-        .pipe(concat(filename))
-        .pipe(gulp.dest(DEST+'/css'));
-};
-
 gulp.task('sass', function() {
-    return compileSASS('custom.css', {});
-});
-
-gulp.task('sass-minify', function() {
-    return compileSASS('custom.min.css', {style: 'compressed'});
+    return gulp.src(['src/scss/*.scss'])
+        .pipe(sourcemaps.init())
+        .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
+        .pipe(autoprefixer('last 2 versions', '> 5%'))
+        .pipe(rename({suffix: '.min'}))
+        .pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest(DEST+'/css'))
+        .pipe(browserSync.stream({once: true}));
 });
 
 gulp.task('watch', function() {
@@ -41,9 +39,10 @@ gulp.task('watch', function() {
   gulp.watch('src/js/custom/*.js', ['scripts']);
   gulp.watch('src/js/helper/*.js', ['scripts']);
   // Watch .scss files
-  gulp.watch('src/scss/*.scss', ['sass', 'sass-minify']);
-  gulp.watch('src/scss/custom/*.scss', ['sass', 'sass-minify']);
+  gulp.watch('src/scss/**/*.scss', ['sass']);
 });
 
+gulp.task('build', ['sass', 'scripts']);
+
 // Default Task
-gulp.task('default', ['watch']);
+gulp.task('default', ['build', 'watch']);
