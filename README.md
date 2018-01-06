@@ -45,6 +45,25 @@ dokku rabbitmq:create {{ project_name }}
 dokku rabbitmq:link {{ project_name }} {{ project_name }}
 ```
 
+### Letsencrypt
+
+To generate a SSL certificate with Letsencrypt, run:
+
+```bash
+sudo dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
+dokku config:set --no-restart {{ project_name }} DOKKU_LETSENCRYPT_EMAIL=<EMAIL>
+dokku letsencrypt {{ project_name }}
+```
+
+### Slack
+
+To notify Slack when the deployment succeeds, run:
+
+```bash
+dokku plugin:install https://github.com/ribot/dokku-slack.git
+dokku slack:set {{ project_name }} <URL>
+```
+
 ## Development
 
 Yarn will be used for frontend packages. To install all packages, run:
