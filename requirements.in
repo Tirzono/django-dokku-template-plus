@@ -1,0 +1,15 @@
+pip-tools
+ipython
+
+gunicorn
+
+django
+dj-database-url
+django-braces
+django-crispy-forms
+django-debug-toolbar
+
+celery
+psycopg2
+rollbar
+whitenoise

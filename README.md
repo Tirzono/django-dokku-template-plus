@@ -65,6 +65,17 @@ To generate the Javascript and CSS file, run:
 gulp
 ```
 
+### Compile requirements
+
+In order to compile the requirements from `requirements.in`, run from the root directory:
+
+
+```bash
+pip-compile
+```
+
+This will automatically generate `requirements.txt` and all its dependencies.
+
 ## Deployment
 
 Deployment can be done with Bitbucket Pipelines. Set the following
