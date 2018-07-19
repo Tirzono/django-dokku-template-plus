@@ -4,12 +4,12 @@ ipython
 gunicorn
 
 django
-dj-database-url
+django-environ
 django-braces
 django-crispy-forms
 django-debug-toolbar
 
 celery
 psycopg2
-rollbar
+raven
 whitenoise

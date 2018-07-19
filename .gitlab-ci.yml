@@ -1,0 +1,50 @@
+stages:
+  - test
+  - deploy
+
+services:
+  - postgres
+
+variables:
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+
+before_script:
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+  - git config --global user.email "$GIT_EMAIL"
+  - git config --global user.name "$GIT_NAME"
+
+test:
+  stage: test
+  image: python:3.6
+  cache:
+    paths:
+      - .pip
+  script:
+    - export DATABASE_URL=postgres://${POSTGRES_DB}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    - export DJANGO_SETTINGS_MODULE="{{ project_name }}.settings.test"
+    - apt-get update -qy
+    - apt-get install -y gettext
+    - mkdir -p .pip
+    - pip install --cache-dir=.pip -r requirements.txt
+    - cd {{ project_name }}
+    - cp .env.example .env
+    - python manage.py test --no-input -v 2
+
+deploy_production:
+  stage: deploy
+  script:
+    - git push ${DOKKU_USER}@${DOKKU_HOST}:${DOKKU_PRODUCTION_APP} HEAD:master
+  when: on_success
+  environment:
+    name: production
+  only:
+  - production
+
