@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:3.2
+
+  postgres:
+    image: postgres:9.6
+    env_file: docker-compose.env
+    ports: ["${{{ project_name }}_POSTGRES_PORT-5433}:5432"]
+    volumes:
+      - database:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3.6
+    env_file: docker-compose.env
+
+  mailhog:
+    image: mailhog/mailhog
+    ports: ["${{{ project_name }}_MAILHOG_PORT-8025}:8025"]
+
+  web:
+    build:
+      context: .
+    depends_on:
+      - redis
+      - postgres
+      - rabbitmq
+      - mailhog
+    command: python manage.py runserver 0.0.0.0:8001
+    ports: ["${{{ project_name }}_PORT-8001}:8001"]
+    volumes: [".:/app:z"]
+    env_file: docker-compose.env
+
+  celery:
+    build:
+      context: .
+    depends_on:
+      - redis
+      - postgres
+      - rabbitmq
+      - mailhog
+    command: watchmedo auto-restart --pattern='*.py' --recursive -- celery worker --beat --loglevel=info --app={{ project_name }}
+    volumes: [".:/app:z"]
+    env_file: docker-compose.env
+
+  flower:
+    build:
+      context: .
+    depends_on:
+      - rabbitmq
+    command: flower --uid=nobody --app={{ project_name }} --port=5555
+    ports: ["${{{ project_name }}_FLOWER_PORT-5555}:5555"]
+    volumes: [".:/app:z"]
+    env_file: docker-compose.env
+
+volumes:
+  database:
+
