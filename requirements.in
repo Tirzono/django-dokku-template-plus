@@ -13,3 +13,5 @@ celery
 psycopg2
 raven
 whitenoise
+unittest-xml-reporting
+
