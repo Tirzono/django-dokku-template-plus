@@ -10,41 +10,54 @@ variables:
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
 
-before_script:
-  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-  - eval $(ssh-agent -s)
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-  - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-  - chmod 644 ~/.ssh/known_hosts
-  - git config --global user.email "$GIT_EMAIL"
-  - git config --global user.name "$GIT_NAME"
-
 test:
-  stage: test
   image: python:3.6
+  stage: test
   cache:
     paths:
-      - .pip
+      - .tox
   script:
     - export DATABASE_URL=postgres://${POSTGRES_DB}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    - export DJANGO_SETTINGS_MODULE="{{ project_name }}.settings.test"
-    - apt-get update -qy
-    - apt-get install -y gettext
-    - mkdir -p .pip
-    - pip install --cache-dir=.pip -r requirements.txt
-    - cd {{ project_name }}
-    - cp .env.example .env
-    - python manage.py test --no-input -v 2
+    - export REDIS_URL=redis://127.0.0.1:6379
+    - pip install tox
+    - tox
+  artifacts:
+    reports:
+      junit: gitlab-tests.xml
+
+code_quality:
+  image: docker:stable
+  stage: test
+  variables:
+    DOCKER_DRIVER: overlay2
+  allow_failure: true
+  services:
+    - docker:stable-dind
+  script:
+    - export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
+    - docker run
+        --env SOURCE_CODE="$PWD"
+        --volume "$PWD":/code
+        --volume /var/run/docker.sock:/var/run/docker.sock
+        "registry.gitlab.com/gitlab-org/security-products/codequality:$SP_VERSION" /code
+  artifacts:
+    paths: [gl-code-quality-report.json]
 
 deploy_production:
   stage: deploy
   script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - git config --global user.email "$GIT_EMAIL"
+    - git config --global user.name "$GIT_NAME"
     - git push ${DOKKU_USER}@${DOKKU_HOST}:${DOKKU_PRODUCTION_APP} HEAD:master
   when: on_success
   environment:
     name: production
   only:
   - production
-
